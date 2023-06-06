@@ -1,0 +1,11 @@
+version: 1.2
+
+workflows:
+  - name: mimosca-wdl
+    subclass: WDL
+    primaryDescriptorPath: /mimosca.wdl
+    authors:
+      - name: Deepika Yeramosu
+        email: dyeramos@broadinstitute.org
+
+  
