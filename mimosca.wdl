@@ -62,7 +62,7 @@ task run_mimosca {
     runtime {
         docker: docker
         memory: memory + "G"
-        bootDiskSizeGb: 12
+        bootDiskSizeGb: 100
         disks: "local-disk " + disk_space + " HDD"
         cpu: cpu
         preemptible: preemptible
