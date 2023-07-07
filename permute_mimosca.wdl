@@ -2,19 +2,35 @@ version 1.0
 
 workflow mimosca {
     input {
-        Int range_iter
-
         Int cpu = 24
         Int memory = 256
         String docker = "dyeramosu/mimosca:1.0.0"
-        Int preemptible = 0
+        Int preemptible = 2
         Int disk_space = 128
+
+        String output_dir # gbucket (no / at end)
+
+        File perturb_gex_anndata_file # al_ld_073_processed_deepika.h5ad
+        File cell_by_guide_csv_file # cell_by_guide_df.csv
+        
+        Int num_iter # number of permutations
     }
     
-    scatter (i in range(range_iter)) {
-        call run_mimosca {input: iter=i }
-  }
-
+    scatter (i in range(num_iter)) {
+        call run_mimosca {
+            input:
+                iter = i,
+                cpu = cpu,
+                memory = memory,
+                docker = docker,
+                preemptible = preemptible, 
+                disk_space = disk_space,
+                output_dir = output_dir,
+                perturb_gex_anndata_file = perturb_gex_anndata_file,
+                cell_by_guide_csv_file = cell_by_guide_csv_file
+        }
+    }
+  
   output {
     Array[File] final_output = run_mimosca.mimosca_coeffs
   }
