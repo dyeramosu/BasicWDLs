@@ -65,13 +65,24 @@ task run_mimosca {
         import scanpy as sc
         import sklearn
         from sklearn import linear_model
+        from random import shuffle
 
         # load files
         adata = sc.read_h5ad('~{perturb_gex_anndata_file}')
         gex_df = pd.DataFrame.sparse.from_spmatrix(adata.X, columns=adata.var.index, index=adata.obs.index) # Y
         cell_by_guide = pd.read_csv('~{cell_by_guide_csv_file}', index_col=0) # X
 
-        # shuffle
+        # shuffle rows (cell names) in X 
+        if ~{iter} != 0:
+            cell_names = list(cell_by_guide.index)
+            shuffled_cell_names = list(cell_by_guide.index)
+            shuffle(shuffled_cell_names)
+
+            #shuffled_cell_by_guide_df = cell_by_guide.copy()
+            cell_by_guide.index = shuffled_cell_names
+
+            # reorder gex_df to be same as shuffled cell_by_guide_df
+            gex_df = gex_df.reindex(shuffled_cell_names)
 
         # fit regression model
         lm = sklearn.linear_model.Ridge()
