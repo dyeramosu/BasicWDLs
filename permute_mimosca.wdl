@@ -91,10 +91,12 @@ task run_mimosca {
         
         # save coefficients 
         B.to_csv('mimosca_output_wdl/mimosca_coeffs_~{iter}.csv')
+        cell_by_guide.to_csv('mimosca_output_wdl/cell_by_guide_~{iter}.csv')
        
         CODE
 
         gsutil -m cp mimosca_output_wdl/mimosca_coeffs_~{iter}.csv ~{output_dir}
+        gsutil -m cp mimosca_output_wdl/cell_by_guide_~{iter}.csv ~{output_dir}
     >>>
 
     output {
