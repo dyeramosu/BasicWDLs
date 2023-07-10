@@ -73,7 +73,7 @@ task run_mimosca {
         cell_by_guide = pd.read_csv('~{cell_by_guide_csv_file}', index_col=0) # X
 
         # shuffle rows (cell names) in X 
-        if ~{iter} != 0:
+        if ~{iter} != 1:
             cell_names = list(cell_by_guide.index)
             shuffled_cell_names = list(cell_by_guide.index)
             shuffle(shuffled_cell_names)
