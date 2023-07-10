@@ -7,9 +7,9 @@ workflows:
     authors:
       - name: Deepika Yeramosu
         email: dyeramos@broadinstitute.org
-  - name: permute-mimosca.wdl
+  - name: permute_mimosca.wdl
     subclass: WDL
-    primaryDescriptorPath: /permute-mimosca.wdl
+    primaryDescriptorPath: /permute_mimosca.wdl
     authors: 
       - name: Deepika Yeramosu
         email: dyeramos@broadinstitute.org
