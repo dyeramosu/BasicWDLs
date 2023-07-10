@@ -73,21 +73,24 @@ task run_mimosca {
         cell_by_guide = pd.read_csv('~{cell_by_guide_csv_file}', index_col=0) # X
 
         # shuffle rows (cell names) in X 
-        if ~{iter} != 1:
-            cell_names = list(cell_by_guide.index)
-            shuffled_cell_names = list(cell_by_guide.index)
-            shuffle(shuffled_cell_names)
+        shuffled_cell_names = list(cell_by_guide.index)
+        shuffle(shuffled_cell_names)
 
-            #shuffled_cell_by_guide_df = cell_by_guide.copy()
-            cell_by_guide.index = shuffled_cell_names
+        #shuffled_cell_by_guide_df = cell_by_guide.copy()
+        shuffled_cell_by_guide.index = shuffled_cell_names
 
-            # reorder gex_df to be same as shuffled cell_by_guide_df
-            gex_df = gex_df.reindex(shuffled_cell_names)
+        # reorder gex_df to be same as shuffled cell_by_guide_df
+        shuffled_gex_df = gex_df.reindex(shuffled_cell_names)
 
         # fit regression model
-        lm = sklearn.linear_model.Ridge()
-        lm.fit(cell_by_guide.values, gex_df.values)
-        B = pd.DataFrame(lm.coef_) # 32659 rows (num_genes)
+        if ~{iter} == 0:
+            lm = sklearn.linear_model.Ridge()
+            lm.fit(cell_by_guide.values, gex_df.values)
+            B = pd.DataFrame(lm.coef_) # 32659 rows (num_genes)
+        else:
+            lm = sklearn.linear_model.Ridge()
+            lm.fit(shuffled_cell_by_guide.values, shuffled_gex_df.values)
+            B = pd.DataFrame(lm.coef_) # 32659 rows (num_genes)
         
         # save coefficients 
         B.to_csv('mimosca_output_wdl/mimosca_coeffs_~{iter}.csv')
