@@ -83,7 +83,7 @@ task run_mimosca {
         shuffled_gex_df = gex_df.reindex(shuffled_cell_names)
 
         # fit regression model
-        if ~{iter} == 0:
+        if '~{iter}' == 0:
             lm = sklearn.linear_model.Ridge()
             lm.fit(cell_by_guide.values, gex_df.values)
             B = pd.DataFrame(lm.coef_) # 32659 rows (num_genes)
