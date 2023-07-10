@@ -76,7 +76,7 @@ task run_mimosca {
         shuffled_cell_names = list(cell_by_guide.index)
         shuffle(shuffled_cell_names)
 
-        #shuffled_cell_by_guide_df = cell_by_guide.copy()
+        shuffled_cell_by_guide = cell_by_guide.copy()
         shuffled_cell_by_guide.index = shuffled_cell_names
 
         # reorder gex_df to be same as shuffled cell_by_guide_df
