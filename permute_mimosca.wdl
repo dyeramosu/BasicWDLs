@@ -72,7 +72,7 @@ task run_mimosca {
         gex_df = pd.DataFrame.sparse.from_spmatrix(adata.X, columns=adata.var.index, index=adata.obs.index) # Y
         cell_by_guide = pd.read_csv('~{cell_by_guide_csv_file}', index_col=0) # X
 
-        if '~{iter}' != 0:
+        if '~{iter}' != 0: # this doesnt work
             # shuffle rows (cell names) in X 
             shuffled_cell_names = list(cell_by_guide.index)
             shuffle(shuffled_cell_names)
