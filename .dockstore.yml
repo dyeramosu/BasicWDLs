@@ -13,5 +13,11 @@ workflows:
     authors: 
       - name: Deepika Yeramosu
         email: dyeramos@broadinstitute.org
+  - name: similarity_matrix-wdl
+    subclass: WDL
+    primaryDescriptorPath: /similarity_matrix.wdl
+    authors:
+      - name: Deepika Yeramosu
+        email: dyeramos@broadinstitute.org
 
   
