@@ -35,8 +35,8 @@ task create_sim_matrix {
         variant_df = pd.read_csv('~{variant_df_file}', index_col = 0)
 
         # create similarity matrix
-        num_cells, num_features = test_variant_df.shape
-        variant_array = test_variant_df.values
+        num_cells, num_features = variant_df.shape
+        variant_array = variant_df.values
 
         and_matrix = np.bitwise_and(variant_array[:, np.newaxis, :], variant_array)  # Broadcast AND operation
         or_matrix = np.bitwise_or(variant_array[:, np.newaxis, :], variant_array)    # Broadcast OR operation
