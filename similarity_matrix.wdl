@@ -39,7 +39,7 @@ task create_sim_matrix {
         variant_array = variant_df.values
         sim_matrix = np.zeros((num_cells, num_cells))
         
-        chunk_size = 50  # adjust this value based on available memory
+        chunk_size = 25  # adjust this value based on available memory
 
         for start in range(0, num_cells, chunk_size):
             end = min(start + chunk_size, num_cells)
