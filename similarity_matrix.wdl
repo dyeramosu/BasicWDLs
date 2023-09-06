@@ -38,22 +38,14 @@ task create_sim_matrix {
         num_cells, num_features = variant_df.shape
         variant_array = variant_df.values
         sim_matrix = np.zeros((num_cells, num_cells))
-        
-        chunk_size = 25  # adjust this value based on available memory
 
-        for start in range(0, num_cells, chunk_size):
-            end = min(start + chunk_size, num_cells)
-            chunk = variant_array[start:end]
+        for i in range(0, num_cells):
+            and_ = np.bitwise_and(variant_array[i], variant_array)
+            or_ = np.bitwise_or(variant_array[i], variant_array)
+            cell = np.sum(and_, axis = 1) / np.sum(or_, axis=1)
 
-            and_chunk = np.bitwise_and(chunk[:, np.newaxis, :], variant_array)
-            or_chunk = np.bitwise_or(chunk[:, np.newaxis, :], variant_array)
-
-            sum_and_chunk = np.sum(and_chunk, axis=2)
-            sum_or_chunk = np.sum(or_chunk, axis=2)
-
-            sim_matrix_chunk = sum_and_chunk / sum_or_chunk
-            sim_matrix[start:end] = sim_matrix_chunk
-
+            sim_matrix[i] = cell
+            
         # save similarity matrix  
         pd.DataFrame(sim_matrix).to_csv('output_wdl/sim_matrix.csv')
 
