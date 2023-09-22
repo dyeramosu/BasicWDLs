@@ -32,6 +32,7 @@ task combine {
         # imports
         import numpy as np
         import pandas as pd
+        import os
 
         # load files
         B = pd.read_csv('~{B_labeled_file}', index_col=0)
