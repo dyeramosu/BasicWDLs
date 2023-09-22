@@ -26,7 +26,7 @@ task combine {
         
         mkdir combine_wdl_output_dir
         mkdir coeffs_dir
-        gsutil -m cp -r ~{permuted_coeffs_dir} coeffs_dir/
+        gsutil -m cp ~{permuted_coeffs_dir}* coeffs_dir/
 
         python << CODE
         # imports
