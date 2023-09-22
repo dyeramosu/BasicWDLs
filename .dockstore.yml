@@ -19,5 +19,11 @@ workflows:
     authors:
       - name: Deepika Yeramosu
         email: dyeramos@broadinstitute.org
+  - name: combine_mimosca_permuted_coeffs-wdl
+    subclass: WDL
+    primaryDescriptorPath: /combine_mimosca_permuted_coeffs.wdl
+    authors:
+      - name: Deepika Yeramosu
+        email: dyeramos@broadinstitute.org
 
   
