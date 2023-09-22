@@ -11,8 +11,7 @@ workflow combine_coeffs {
 task combine {
     input {
         String output_dir # gbucket (no / at end)
-        
-        String permuted_coeffs_dir 
+        String permuted_coeffs_dir # gbucket (no / at end)
         File B_labeled_file
         
         Int cpu = 24
@@ -26,6 +25,8 @@ task combine {
         set -e 
         
         mkdir combine_wdl_output_dir
+        mkdir coeffs_dir
+        gsutil -m cp -r ~{permuted_coeffs_dir} coeffs_dir/
 
         python << CODE
         # imports
@@ -41,8 +42,8 @@ task combine {
         # initialize dict
         guide_dict = {guide: {gene: [] for gene in gene_list} for guide in guide_list}
         
-        for file in os.listdir('~{permuted_coeffs_dir}'): # for every permuted coeff df
-            coeffs_df = pd.read_csv(os.path.join('~{permuted_coeffs_dir}', file), index_col=0)
+        for file in os.listdir('coeffs_dir'): # for every permuted coeff df
+            coeffs_df = pd.read_csv(os.path.join('coeffs_dir', file), index_col=0)
             coeffs_df.columns = guide_list
             coeffs_df.index = gene_list
         
