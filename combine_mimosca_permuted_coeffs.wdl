@@ -55,15 +55,18 @@ task combine {
                     guide_dict[guide][gene].append(coeff)
 
         
-        pd.DataFrame.from_dict(guide_dict).to_csv('combine_wdl_output_dir/all_permuted_coeffs_df.csv')
+        for key in guide_dict:
+            pd.DataFrame.from_dict(guide_dict[key]).to_csv('combine_wdl_output_dir/{}.csv'.format(key))
+        
+        #pd.DataFrame.from_dict(guide_dict).to_csv('combine_wdl_output_dir/all_permuted_coeffs_df.csv')
        
         CODE
 
-        gsutil -m cp combine_wdl_output_dir/all_permuted_coeffs_df.csv ~{output_dir}
+        gsutil -m cp -r combine_wdl_output_dir ~{output_dir}
     >>>
 
     output {
-        File combined_df = 'combine_wdl_output_dir/all_permuted_coeffs_df.csv'
+        File combined_df = 'combine_wdl_output_dir/ctrl_1.csv'
     }
 
     runtime {
