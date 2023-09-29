@@ -10,13 +10,13 @@ workflow mimosca {
 
         String output_dir # gbucket (no / at end)
 
-        File perturb_gex_anndata_file # al_ld_073_processed_deepika.h5ad
+        File perturb_gex_anndata_file # al_ld_073_processed_deepika.h5ad # change to strings and gsutil -m
         File cell_by_guide_csv_file # cell_by_guide_df.csv
         
         Int num_iter # number of permutations
     }
     
-    scatter (i in range(num_iter)) {
+    scatter (i in range(num_iter)) { # do every 10
         call run_mimosca {
             input:
                 iter = i,

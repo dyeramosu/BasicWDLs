@@ -37,26 +37,35 @@ task run_mimosca {
         import sklearn
         from sklearn import linear_model
 
+        print('loading in anndata', flush=True)
+
         # load files
         adata = sc.read_h5ad('~{perturb_gex_anndata_file}')
         gex_df = pd.DataFrame.sparse.from_spmatrix(adata.X, columns=adata.var.index, index=adata.obs.index) # Y
         cell_by_guide = pd.read_csv('~{cell_by_guide_csv_file}', index_col=0) # X
+
+        print('loaded in anndata, starting regression', flush=True)
         
         # fit regression model
         lm = sklearn.linear_model.Ridge()
         lm.fit(cell_by_guide.values, gex_df.values)
         B = pd.DataFrame(lm.coef_) # 32659 rows (num_genes)
+
+        print('finished regression, saving coefficients', flush=True)
         
         # save coefficients 
-        B.to_csv('mimosca_output_wdl/mimosca_coeffs.csv')
+        #B.to_csv('mimosca_output_wdl/mimosca_coeffs.csv')
+        B.to_pickle("mimosca_output_wdl/mimosca_coeffs.pkl")
+
+        print('saved coefficients', flush=True)
        
         CODE
 
-        gsutil -m cp mimosca_output_wdl/mimosca_coeffs.csv ~{output_dir}
+        gsutil -m cp mimosca_output_wdl/mimosca_coeffs.pkl ~{output_dir}
     >>>
 
     output {
-        File mimosca_coeffs = 'mimosca_output_wdl/mimosca_coeffs.csv'
+        File mimosca_coeffs = 'mimosca_output_wdl/mimosca_coeffs.pkl'
     }
 
     runtime {
