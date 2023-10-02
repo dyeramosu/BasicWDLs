@@ -68,36 +68,35 @@ task run_mimosca {
         from random import shuffle
 
         # load files
-        adata = sc.read_h5ad('~{perturb_gex_anndata_file}')
-        gex_df = pd.DataFrame.sparse.from_spmatrix(adata.X, columns=adata.var.index, index=adata.obs.index) # Y
+        adata = sc.read_h5ad('~{perturb_gex_anndata_file}') # Y = adata.X
         cell_by_guide = pd.read_csv('~{cell_by_guide_csv_file}', index_col=0) # X
 
-        if '~{iter}' != 0: # this doesnt work
+        if ~{iter} != 0: 
             # shuffle rows (cell names) in X 
             shuffled_cell_names = list(cell_by_guide.index)
             shuffle(shuffled_cell_names)
             cell_by_guide.index = shuffled_cell_names
-
             # reorder gex_df to be same as shuffled cell_by_guide_df
-            gex_df = gex_df.reindex(shuffled_cell_names)
+            adata = adata[shuffled_cell_names, :].copy()
 
         # fit regression model
-        lm = sklearn.linear_model.Ridge()
-        lm.fit(cell_by_guide.values, gex_df.values)
+        lm = linear_model.Ridge(fit_intercept=True, max_iter=10000)
+        lm.fit(cell_by_guide.values, adata.X.toarray())
         B = pd.DataFrame(lm.coef_) # 32659 rows (num_genes)
         
         # save coefficients 
-        B.to_csv('mimosca_output_wdl/mimosca_coeffs_~{iter}.csv')
-        cell_by_guide.to_csv('mimosca_output_wdl/cell_by_guide_~{iter}.csv')
+        #B.to_csv('mimosca_output_wdl/mimosca_coeffs_~{iter}.csv')
+        #cell_by_guide.to_csv('mimosca_output_wdl/cell_by_guide_~{iter}.csv')
+        B.to_pickle("mimosca_output_wdl/mimosca_coeffs_~{iter}.pkl")
        
         CODE
 
-        gsutil -m cp mimosca_output_wdl/mimosca_coeffs_~{iter}.csv ~{output_dir}
-        gsutil -m cp mimosca_output_wdl/cell_by_guide_~{iter}.csv ~{output_dir}
+        gsutil -m cp mimosca_output_wdl/mimosca_coeffs_~{iter}.pkl ~{output_dir}
+        #gsutil -m cp mimosca_output_wdl/cell_by_guide_~{iter}.csv ~{output_dir}
     >>>
 
     output {
-        File mimosca_coeffs = 'mimosca_output_wdl/mimosca_coeffs_~{iter}.csv'
+        File mimosca_coeffs = 'mimosca_output_wdl/mimosca_coeffs_~{iter}.pkl'
     }
 
     runtime {
