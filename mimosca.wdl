@@ -40,15 +40,14 @@ task run_mimosca {
         print('loading in anndata', flush=True)
 
         # load files
-        adata = sc.read_h5ad('~{perturb_gex_anndata_file}')
-        gex_df = pd.DataFrame.sparse.from_spmatrix(adata.X, columns=adata.var.index, index=adata.obs.index) # Y
+        adata = sc.read_h5ad('~{perturb_gex_anndata_file}') # Y = adata.X
         cell_by_guide = pd.read_csv('~{cell_by_guide_csv_file}', index_col=0) # X
 
         print('loaded in anndata, starting regression', flush=True)
         
         # fit regression model
-        lm = sklearn.linear_model.Ridge()
-        lm.fit(cell_by_guide.values, gex_df.values)
+        lm = linear_model.Ridge(fit_intercept=True, max_iter=10000)
+        lm.fit(cell_by_guide.values, adata.X.toarray())
         B = pd.DataFrame(lm.coef_) # 32659 rows (num_genes)
 
         print('finished regression, saving coefficients', flush=True)
