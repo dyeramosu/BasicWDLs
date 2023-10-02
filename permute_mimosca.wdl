@@ -75,13 +75,14 @@ task run_mimosca {
 
         print('loaded in anndata, shuffling', flush=True)
 
-        # shuffle rows (cell names) in X 
-        shuffled_cell_names = list(cell_by_guide.index)
-        shuffle(shuffled_cell_names)
-        cell_by_guide.index = shuffled_cell_names
+        if ~{iter} != 0:
+            # shuffle rows (cell names) in X 
+            shuffled_cell_names = list(cell_by_guide.index)
+            shuffle(shuffled_cell_names)
+            cell_by_guide.index = shuffled_cell_names
         
-        # reorder gex_df to be same as shuffled cell_by_guide_df
-        adata = adata[shuffled_cell_names, :].copy()
+            # reorder gex_df to be same as shuffled cell_by_guide_df
+            adata = adata[shuffled_cell_names, :].copy()
 
         print('starting regression', flush=True)
 
