@@ -13,13 +13,13 @@ workflow mimosca {
         File perturb_gex_anndata_file # al_ld_073_processed_deepika.h5ad 
         File cell_by_guide_csv_file # cell_by_guide_df.csv
         
-        Int num_iter # number of permutations
+        Int num_chunks # number of chunks (100 iters, 10 in each --> 10 chunks)
     }
     
-    scatter (i in range(num_iter)) { 
+    scatter (c in range(num_chunks)) { 
         call run_mimosca {
             input:
-                iter = i,
+                chunk = c,
                 cpu = cpu,
                 memory = memory,
                 docker = docker,
@@ -40,7 +40,7 @@ task run_mimosca {
     input {
         String output_dir # gbucket (no / at end)
         
-        Int iter 
+        Int chunk 
         File perturb_gex_anndata_file # al_ld_073_processed_deepika.h5ad
         File cell_by_guide_csv_file # cell_by_guide_df.csv
 
@@ -75,7 +75,7 @@ task run_mimosca {
 
         print('loaded in anndata, shuffling', flush=True)
 
-        if ~{iter} != 0:
+        for i in range(10): # 10 permutations per chunk 
             # shuffle rows (cell names) in X 
             shuffled_cell_names = list(cell_by_guide.index)
             shuffle(shuffled_cell_names)
@@ -84,25 +84,25 @@ task run_mimosca {
             # reorder gex_df to be same as shuffled cell_by_guide_df
             adata = adata[shuffled_cell_names, :].copy()
 
-        print('starting regression', flush=True)
+            print('starting regression', flush=True)
 
-        # fit regression model
-        lm = linear_model.Ridge(fit_intercept=True, max_iter=10000)
-        lm.fit(cell_by_guide.values, adata.X.toarray())
-        B = pd.DataFrame(lm.coef_) # 32659 rows (num_genes)
+            # fit regression model
+            lm = linear_model.Ridge(fit_intercept=True, max_iter=10000)
+            lm.fit(cell_by_guide.values, adata.X.toarray())
+            B = pd.DataFrame(lm.coef_) # 32659 rows (num_genes)
 
-        print('finished regression, saving pickle object', flush=True)
-        
-        # save coefficients 
-        B.to_pickle("mimosca_output_wdl/mimosca_coeffs_~{iter}.pkl")
+            print('finished regression, saving pickle object', flush=True)
+            
+            # save coefficients 
+            B.to_pickle("mimosca_output_wdl/mimosca_coeffs_~{chunk}_{}.pkl".format(i))
        
         CODE
-
-        gsutil -m cp mimosca_output_wdl/mimosca_coeffs_~{iter}.pkl ~{output_dir}
+        gsutil -m rsync mimosca_output_wdl ~{output_dir}
+        tar -zcvf mimosca_output_wdl_~{chunk}.tar.gz mimosca_output_wdl
     >>>
 
     output {
-        File mimosca_coeffs = 'mimosca_output_wdl/mimosca_coeffs_~{iter}.pkl'
+        File mimosca_coeffs = 'mimosca_output_wdl_~{chunk}.tar.gz'
     }
 
     runtime {
