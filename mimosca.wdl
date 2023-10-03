@@ -47,7 +47,7 @@ task run_mimosca {
         
         # fit regression model
         lm = linear_model.Ridge(fit_intercept=True, max_iter=10000)
-        lm.fit(cell_by_guide.values, adata.X.toarray())
+        lm.fit(adata.X, cell_by_guide.values)
         B = pd.DataFrame(lm.coef_) # 32659 rows (num_genes)
 
         print('finished regression, saving coefficients', flush=True)
