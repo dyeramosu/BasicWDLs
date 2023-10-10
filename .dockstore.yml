@@ -31,6 +31,12 @@ workflows:
     authors:
       - name: Deepika Yeramosu
         email: dyeramos@broadinstitute.org
+  - name: mimosca_statsmodels-wdl
+    subclass: WDL
+    primaryDescriptorPath: /mimosca_statsmodels.wdl
+    authors:
+      - name: Deepika Yeramosu
+        email: dyeramos@broadinstitute.org
 
 
   
