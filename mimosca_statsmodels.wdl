@@ -1,25 +1,54 @@
 version 1.0
 
 workflow mimosca {
-    call run_statsmodels
-
-    output {
-        File mimosca_outputs = run_statsmodels.coeffs
-    }
-}
-
-task run_statsmodels {
     input {
-        String output_dir # gbucket (no / at end)
-        
-        File perturb_gex_anndata_file # al_ld_073_processed_deepika.h5ad
-        File cell_by_guide_csv_file # cell_by_guide_df.csv
-
         Int cpu = 24
         Int memory = 256
         String docker = "dyeramosu/mimosca:1.0.0"
         Int preemptible = 1
         Int disk_space = 128
+
+        String output_dir # gbucket (no / at end)
+
+        File perturb_gex_anndata_file # al_ld_073_processed_deepika.h5ad 
+        File guide_info_file # crispr-guides_al-ld-073_final.csv
+        
+        Int num_chunks # number of chunks (32659 genes, 11 chunks, 2969 genes in each chunk)
+    }
+    
+    scatter (c in range(num_chunks)) { 
+        call run_mimosca {
+            input:
+                chunk = c,
+                cpu = cpu,
+                memory = memory,
+                docker = docker,
+                preemptible = preemptible, 
+                disk_space = disk_space,
+                output_dir = output_dir,
+                perturb_gex_anndata_file = perturb_gex_anndata_file,
+                guide_info_file = guide_info_file
+        }
+    }
+  
+  output {
+    Array[File] final_output = run_mimosca.mimosca_coeffs
+  }
+}
+
+task run_mimosca {
+    input {
+        String output_dir # gbucket (no / at end)
+        
+        Int chunk 
+        File perturb_gex_anndata_file # al_ld_073_processed_deepika.h5ad
+        File guide_info_file # crispr-guides_al-ld-073_final.csv
+
+        Int cpu 
+        Int memory 
+        String docker 
+        Int preemptible 
+        Int disk_space 
     }
 
     command <<<
@@ -30,20 +59,40 @@ task run_statsmodels {
 
         python << CODE
         # imports
+        import matplotlib.pyplot as plt
         import numpy as np
         import pandas as pd
         import scanpy as sc
+        import sklearn
         import statsmodels.api as sm
 
-        print('loading in anndata', flush=True)
+        print('loading in data', flush=True)
 
         # load files
-        adata = sc.read_h5ad('~{perturb_gex_anndata_file}') # Y = adata.X
-        cell_by_guide = pd.read_csv('~{cell_by_guide_csv_file}', index_col=0) # X
-        gex_df = pd.DataFrame.sparse.from_spmatrix(adata.X, columns=adata.var.index, index=adata.obs.index) # Y
+        adata = sc.read_h5ad('~{perturb_gex_anndata_file}')
+        guide_info = pd.read_csv('~{guide_info_file}')
 
-        print('loaded in anndata, starting regression', flush=True)
-        
+        # create gex df (with added grna_bam column)
+        genes = adata.var.index.to_list()
+        gene_df = sc.get.obs_df(
+                adata,
+                keys=['grna_bam', *genes]
+            )
+        gene_df = gene_df.reset_index()
+        gene_df = pd.merge(gene_df, guide_info[['guide', 'grna']], left_on='grna_bam', right_on='guide').drop(columns=['grna_bam', 'guide'])
+        gene_df.set_index('cellname', inplace=True)
+
+        # create cell by guide df
+        cell_by_guide = pd.get_dummies(gene_df['grna'])
+        cell_by_guide = cell_by_guide.fillna(0)
+
+        # get list of genes depending on chunk
+        idxs = np.arange(0, 32660, 2969)
+        gene_idxs = np.arange(idxs[~{chunk}], idxs[~{chunk}+1])
+        gex_df = gene_df.iloc[:, gene_idxs]
+
+        print('loaded in data, starting regression', flush=True)
+
         # fit regression model
         coeff_dict = {}
         pval_dict = {}
@@ -65,19 +114,17 @@ task run_statsmodels {
         coeff_df = pd.DataFrame(coeff_dict)
         pval_df = pd.DataFrame(pval_dict)
 
-        coeff_df.to_pickle("mimosca_output_wdl/statsmodels_coeffs.pkl")
-        pval_df.to_pickle("mimosca_output_wdl/statsmodels_pvals.pkl")
-
-        print('saved coefficients', flush=True)
+         # save coefficients 
+        coeff_df.to_pickle("mimosca_output_wdl/statsmodels_coeffs_{chunk}.pkl")
+        pval_df.to_pickle("mimosca_output_wdl/statsmodels_pvals_{chunk}.pkl")        
        
         CODE
-
         gsutil -m rsync mimosca_output_wdl ~{output_dir}
-        tar -zcvf mimosca_outputs.tar.gz mimosca_output_wdl
+        tar -zcvf mimosca_output_wdl_~{chunk}.tar.gz mimosca_output_wdl
     >>>
 
     output {
-        File coeffs = 'mimosca_outputs.tar.gz'
+        File mimosca_coeffs = 'mimosca_output_wdl_~{chunk}.tar.gz'
     }
 
     runtime {
