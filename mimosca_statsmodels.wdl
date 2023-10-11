@@ -115,8 +115,8 @@ task run_mimosca {
         pval_df = pd.DataFrame(pval_dict)
 
          # save coefficients 
-        coeff_df.to_pickle("mimosca_output_wdl/statsmodels_coeffs_{chunk}.pkl")
-        pval_df.to_pickle("mimosca_output_wdl/statsmodels_pvals_{chunk}.pkl")        
+        coeff_df.to_pickle("mimosca_output_wdl/statsmodels_coeffs_~{chunk}.pkl")
+        pval_df.to_pickle("mimosca_output_wdl/statsmodels_pvals_~{chunk}.pkl")        
        
         CODE
         gsutil -m rsync mimosca_output_wdl ~{output_dir}
