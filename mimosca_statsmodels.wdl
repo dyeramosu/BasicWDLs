@@ -86,6 +86,11 @@ task run_mimosca {
         cell_by_guide = pd.get_dummies(gene_df['grna'])
         cell_by_guide = cell_by_guide.fillna(0)
 
+        # add cell state cov to design matrix
+        cell_by_guide = cell_by_guide.join(adata.obs['states'])
+        state_mapping = {'E': 0, 'QM': 1, 'other': 2}
+        cell_by_guide['states'] = cell_by_guide['states'].replace(state_mapping)
+
         # get list of genes depending on chunk
         idxs = np.arange(0, 32660, 2969)
         gene_idxs = np.arange(idxs[~{chunk}], idxs[~{chunk}+1])
