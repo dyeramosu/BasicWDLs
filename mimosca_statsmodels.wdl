@@ -10,7 +10,7 @@ workflow mimosca {
 
         String output_dir # gbucket (no / at end)
 
-        File perturb_gex_anndata_file # 20231210_day6_processed_filtered_with-barcodes.h5ad 
+        File perturb_gex_anndata_file # h5ad file
         
         Int num_chunks = 10 # number of chunks
     }
@@ -90,8 +90,8 @@ task run_mimosca {
         cell_by_guide['states'] = cell_by_guide.states.astype(int)
 
         # get list of genes depending on chunk
-        idxs = np.arange(0, 32109, 2919) 
-        idxs = np.append(idxs, 32109)
+        idxs = np.arange(0, 31640, 3164)
+        idxs = np.append(idxs, 31640)
         gene_idxs = np.arange(idxs[~{chunk}], idxs[~{chunk}+1])
         gex_df = gex_df.iloc[:, gene_idxs]
 
